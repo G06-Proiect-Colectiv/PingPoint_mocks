@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "T12wWB0wpQw=",
+  "dgSpecHash": "vSl5JYcTn6E=",
   "success": true,
-  "projectFilePath": "E:\\Semestrul_5\\Proiect Colectiv\\Mock\\PingPoint_mocks\\backend\\backend\\backend\\backend.csproj",
+  "projectFilePath": "E:\\Semestrul_5\\Proiect Colectiv\\Mock\\PingPoint_mocks\\backend\\backend\\backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\HOME\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.21\\microsoft.aspnetcore.authentication.jwtbearer.8.0.21.nupkg.sha512",
     "C:\\Users\\HOME\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.21\\microsoft.aspnetcore.cryptography.internal.8.0.21.nupkg.sha512",
