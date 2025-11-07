@@ -1,0 +1,521 @@
+@startuml PingPoint Architecture
+
+!define RECTANGLE class
+allowmixing
+
+skinparam backgroundColor white
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 100
+skinparam ArrowMessageAlignment center
+skinparam SequenceMessageAlignment center
+skinparam padding 5
+skinparam shadowing false
+
+' ========================================
+' BACKEND LAYER
+' ========================================
+
+package "Backend (ASP.NET Core)" #LightBlue {
+    
+    ' Models
+    package "Models" #LightYellow {
+        class User {
+            + Id: int
+            + Username: string
+            + Email: string
+            + PasswordHash: string
+        }
+        
+        class Location {
+            + Id: int
+            + Name: string
+            + Latitude: double
+            + Longitude: double
+        }
+        
+        class Route {
+            + Id: int
+            + Name: string
+            + StartLocationId: int
+            + EndLocationId: int
+            + Polyline: string
+            + Distance: double
+            + Duration: double
+            + UserId: int
+            + IsPublished: boolean
+            + CreatedAt: DateTime
+        }
+        
+        class Walk {
+            + Id: int
+            + UserId: int
+            + RouteId: int
+            + StartTime: DateTime
+            + EndTime: DateTime
+            + Distance: double
+            + Duration: double
+            + Steps: int
+            + Polyline: string
+        }
+        
+        class Place {
+            + Id: int
+            + Name: string
+            + Description: string
+            + Latitude: double
+            + Longitude: double
+            + CategoryId: int
+            + UserId: int
+            + IsPublished: boolean
+            + Rating: double
+            + CreatedAt: DateTime
+        }
+        
+        class PlaceCategory {
+            + Id: int
+            + Name: string
+            + Icon: string
+        }
+        
+        class RouteRecommendation {
+            + Id: int
+            + UserId: int
+            + RecommendedRouteId: int
+            + Score: double
+            + Reason: string
+            + CreatedAt: DateTime
+        }
+    }
+    
+    ' Data Layer
+    package "Data" #LightGreen {
+        class PingPointDbContext {
+            + Routes: DbSet<Route>
+            + Locations: DbSet<Location>
+            + Users: DbSet<User>
+            + Walks: DbSet<Walk>
+            + Places: DbSet<Place>
+            + PlaceCategories: DbSet<PlaceCategory>
+            + RouteRecommendations: DbSet<RouteRecommendation>
+            + PingPointDbContext(options)
+        }
+    }
+    
+    ' Controllers
+    package "Controllers" #LightCoral {
+        class RouteController {
+            - dbContext: PingPointDbContext
+            - _httpClient: HttpClient
+            - _config: IConfiguration
+            + GetRoute(id): Task<ActionResult<Route>>
+            + CreateRoute(route): Task<ActionResult<Route>>
+            + UpdateRoute(id, route): Task<IActionResult>
+            + GetPublishedRoutes(): Task<ActionResult<IEnumerable<Route>>>
+        }
+        
+        class WalkController {
+            - dbContext: PingPointDbContext
+            + GetWalk(id): Task<ActionResult<Walk>>
+            + GetUserWalks(userId): Task<ActionResult<IEnumerable<Walk>>>
+            + CreateWalk(walk): Task<ActionResult<Walk>>
+            + DeleteWalk(id): Task<IActionResult>
+        }
+        
+        class PlaceController {
+            - dbContext: PingPointDbContext
+            + GetPlace(id): Task<ActionResult<Place>>
+            + GetPlacesByCategory(categoryId): Task<ActionResult<IEnumerable<Place>>>
+            + CreatePlace(place): Task<ActionResult<Place>>
+            + UpdatePlace(id, place): Task<IActionResult>
+            + SharePlace(id): Task<IActionResult>
+        }
+        
+        class RecommendationController {
+            - dbContext: PingPointDbContext
+            - recommendationService: IRecommendationService
+            + GetRecommendations(userId): Task<ActionResult<IEnumerable<Route>>>
+            + GenerateRecommendations(userId): Task<IActionResult>
+        }
+    }
+    
+    ' Services
+    package "Services" #Lavender {
+        interface IRecommendationService {
+            + GenerateRecommendations(userId): Task<IEnumerable<RouteRecommendation>>
+            + GetRecommendedRoutes(userId): Task<IEnumerable<Route>>
+        }
+        
+        class RecommendationService {
+            - dbContext: PingPointDbContext
+            + GenerateRecommendations(userId): Task<IEnumerable<RouteRecommendation>>
+            + GetRecommendedRoutes(userId): Task<IEnumerable<Route>>
+            - CalculateSimilarity(route1, route2): double
+            - ScoreRoute(userId, route): double
+        }
+    }
+    
+    class Program {
+        + Main(args): void
+        {static} Configures services
+        {static} Configures middleware
+    }
+}
+
+' ========================================
+' FRONTEND LAYER
+' ========================================
+
+package "Frontend (Flutter)" #LightCyan {
+    
+    class MainApp {
+        + build(context): Widget
+        - Root widget
+        - Initializes app
+    }
+    
+    package "Screens" #Wheat {
+        class LoginScreen {
+            + build(context): Widget
+            + login(): void
+            + navigateToHome(): void
+        }
+        
+        class HomePage {
+            + build(context): Widget
+            + displayMap(): Widget
+            + showDailyChallenge(): void
+            + trackCurrentWalk(): void
+        }
+        
+        class MyWalksScreen {
+            + build(context): Widget
+            + loadWalks(): Future<void>
+            + displayWalkHistory(): Widget
+            + showWalkDetails(walkId): void
+            + filterWalks(criteria): void
+            + exportWalk(walkId): void
+        }
+        
+        class PlacesScreen {
+            + build(context): Widget
+            + loadPlaces(): Future<void>
+            + filterByCategory(categoryId): void
+            + createPlace(): void
+            + sharePlace(placeId): void
+            + ratePlace(placeId, rating): void
+        }
+        
+        class RecommendationsScreen {
+            + build(context): Widget
+            + loadRecommendations(): Future<void>
+            + displayRecommendedRoutes(): Widget
+            + acceptRecommendation(routeId): void
+            + startRecommendedRoute(routeId): void
+        }
+        
+        class ProfileScreen {
+            + build(context): Widget
+            + displayUserStats(): Widget
+            + editProfile(): void
+            + navigateToSettings(): void
+        }
+        
+        class SettingsScreen {
+            + build(context): Widget
+            + toggleDarkMode(): void
+            + changeUnitPreference(): void
+            + updateNotifications(): void
+            + selectMapType(): void
+        }
+    }
+    
+    package "Widgets" #PaleGreen {
+        class MapWidget {
+            + build(context): Widget
+            + displayRoute(route): void
+            + drawTrail(points): void
+            + showUserLocation(): void
+        }
+        
+        class TrailDrawingWidget {
+            + build(context): Widget
+            + enableDrawing(): void
+            + saveTrail(): void
+            + clearTrail(): void
+        }
+        
+        class WalkTrackerWidget {
+            + build(context): Widget
+            + startTracking(): void
+            + stopTracking(): void
+            + displayStats(): Widget
+        }
+        
+        class PlaceCardWidget {
+            + build(context): Widget
+            + displayPlaceInfo(place): Widget
+            + navigateToPlace(): void
+        }
+        
+        class RouteCardWidget {
+            + build(context): Widget
+            + displayRouteInfo(route): Widget
+            + startRoute(): void
+        }
+    }
+    
+    package "Services" #LightSalmon {
+        class ApiService {
+            - baseUrl: String
+            - httpClient: HttpClient
+            + get(endpoint): Future<dynamic>
+            + post(endpoint, data): Future<dynamic>
+            + put(endpoint, data): Future<dynamic>
+            + delete(endpoint): Future<dynamic>
+        }
+        
+        class WalkService {
+            - apiService: ApiService
+            + getWalks(userId): Future<List<Walk>>
+            + createWalk(walk): Future<Walk>
+            + deleteWalk(walkId): Future<void>
+        }
+        
+        class PlaceService {
+            - apiService: ApiService
+            + getPlaces(): Future<List<Place>>
+            + getPlacesByCategory(categoryId): Future<List<Place>>
+            + createPlace(place): Future<Place>
+            + sharePlace(placeId): Future<void>
+        }
+        
+        class RouteService {
+            - apiService: ApiService
+            + getRoute(routeId): Future<Route>
+            + createRoute(route): Future<Route>
+            + getPublishedRoutes(): Future<List<Route>>
+        }
+        
+        class RecommendationService {
+            - apiService: ApiService
+            + getRecommendations(userId): Future<List<Route>>
+            + generateRecommendations(userId): Future<void>
+        }
+        
+        class LocationService {
+            + getCurrentLocation(): Future<Location>
+            + trackLocation(): Stream<Location>
+            + calculateDistance(start, end): double
+        }
+    }
+    
+    package "Models" #MistyRose {
+        class UserModel {
+            + id: int
+            + username: String
+            + email: String
+            + fromJson(json): UserModel
+            + toJson(): Map
+        }
+        
+        class WalkModel {
+            + id: int
+            + userId: int
+            + startTime: DateTime
+            + endTime: DateTime
+            + distance: double
+            + duration: double
+            + fromJson(json): WalkModel
+            + toJson(): Map
+        }
+        
+        class PlaceModel {
+            + id: int
+            + name: String
+            + latitude: double
+            + longitude: double
+            + categoryId: int
+            + rating: double
+            + fromJson(json): PlaceModel
+            + toJson(): Map
+        }
+        
+        class RouteModel {
+            + id: int
+            + name: String
+            + distance: double
+            + duration: double
+            + polyline: String
+            + isPublished: bool
+            + fromJson(json): RouteModel
+            + toJson(): Map
+        }
+    }
+    
+    package "State Management" #Plum {
+        class AppState {
+            + currentUser: UserModel
+            + isAuthenticated: bool
+            + notify(): void
+        }
+        
+        class WalkState {
+            + walks: List<WalkModel>
+            + isTracking: bool
+            + currentWalk: WalkModel
+            + notify(): void
+        }
+        
+        class PlaceState {
+            + places: List<PlaceModel>
+            + selectedCategory: int
+            + notify(): void
+        }
+    }
+}
+
+' ========================================
+' EXTERNAL SERVICES
+' ========================================
+
+package "External Services" #LightGray {
+    class GoogleMapsAPI {
+        + getDirections(origin, destination): JSON
+        + getPolyline(): string
+    }
+    
+    database PostgreSQL
+}
+
+' ========================================
+' RELATIONSHIPS
+' ========================================
+
+' Backend Relationships
+RouteController --> PingPointDbContext : uses
+RouteController --> GoogleMapsAPI : calls
+WalkController --> PingPointDbContext : uses
+PlaceController --> PingPointDbContext : uses
+RecommendationController --> PingPointDbContext : uses
+RecommendationController --> IRecommendationService : uses
+RecommendationService ..|> IRecommendationService : implements
+RecommendationService --> PingPointDbContext : uses
+PingPointDbContext --> Route : manages
+PingPointDbContext --> Location : manages
+PingPointDbContext --> User : manages
+PingPointDbContext --> Walk : manages
+PingPointDbContext --> Place : manages
+PingPointDbContext --> PlaceCategory : manages
+PingPointDbContext --> RouteRecommendation : manages
+PingPointDbContext --> PostgreSQL : connects
+Route --> Location : references (StartLocationId)
+Route --> Location : references (EndLocationId)
+Route --> User : belongs to
+Walk --> User : belongs to
+Walk --> Route : references
+Place --> User : created by
+Place --> PlaceCategory : categorized by
+RouteRecommendation --> User : for user
+RouteRecommendation --> Route : recommends
+Program --> RouteController : registers
+Program --> WalkController : registers
+Program --> PlaceController : registers
+Program --> RecommendationController : registers
+Program --> PingPointDbContext : configures
+Program --> RecommendationService : registers
+
+' Frontend Flutter Relationships
+MainApp --> LoginScreen : initializes
+MainApp --> HomePage : navigates to
+MainApp --> MyWalksScreen : navigates to
+MainApp --> PlacesScreen : navigates to
+MainApp --> RecommendationsScreen : navigates to
+MainApp --> ProfileScreen : navigates to
+MainApp --> SettingsScreen : navigates to
+HomePage --> MapWidget : contains
+HomePage --> WalkTrackerWidget : contains
+MyWalksScreen --> WalkService : uses
+PlacesScreen --> PlaceService : uses
+PlacesScreen --> PlaceCardWidget : displays
+RecommendationsScreen --> RecommendationService : uses
+RecommendationsScreen --> RouteCardWidget : displays
+ProfileScreen --> SettingsScreen : navigates to
+MapWidget --> LocationService : uses
+TrailDrawingWidget --> RouteService : uses
+WalkTrackerWidget --> WalkService : uses
+WalkTrackerWidget --> LocationService : uses
+ApiService --> RouteController : HTTP calls
+ApiService --> WalkController : HTTP calls
+ApiService --> PlaceController : HTTP calls
+ApiService --> RecommendationController : HTTP calls
+WalkService --> ApiService : uses
+PlaceService --> ApiService : uses
+RouteService --> ApiService : uses
+RecommendationService --> ApiService : uses
+WalkState --> WalkModel : manages
+PlaceState --> PlaceModel : manages
+AppState --> UserModel : manages
+MyWalksScreen --> WalkState : observes
+PlacesScreen --> PlaceState : observes
+
+' Notes
+note right of GoogleMapsAPI
+  Used to get route directions,
+  polylines, distance, and duration
+  Integrated in Flutter via packages
+end note
+
+note right of Walk
+  Feature 1: Track Your Walks
+  - Records walk history
+  - Tracks distance, duration, steps
+  - Stores polyline for visualization
+end note
+
+note right of Place
+  Feature 2: Find and Share Places
+  - Categorized places (parks, restaurants, etc.)
+  - User-generated content
+  - Rating system
+  - Sharing capability
+end note
+
+note right of RecommendationService
+  Feature 3: Route Recommendations
+  - Analyzes user walk patterns
+  - Finds similar published routes
+  - Calculates similarity scores
+  - Generates personalized suggestions
+end note
+
+note right of PlaceCategory
+  Categories include:
+  - Parks
+  - Restaurants
+  - Cafes
+  - Museums
+  - Historic sites
+  - Viewpoints
+end note
+
+note bottom of PingPointDbContext
+  Entity Framework Core
+  with PostgreSQL provider
+end note
+
+note bottom of ApiService
+  Flutter HTTP client for
+  communicating with .NET backend
+  Handles authentication tokens
+  Error handling and retries
+end note
+
+note bottom of AppState
+  State management using
+  Provider/Riverpod/Bloc
+  for reactive UI updates
+end note
+
+@enduml
