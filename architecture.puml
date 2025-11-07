@@ -11,7 +11,7 @@ skinparam ranksep 100
 skinparam ArrowMessageAlignment center
 skinparam SequenceMessageAlignment center
 skinparam padding 5
-skinparam shadowing false
+skinparam shadowing true
 
 ' ========================================
 ' BACKEND LAYER
@@ -394,71 +394,70 @@ package "External Services" #LightGray {
 ' ========================================
 
 ' Backend Relationships
-RouteController --> PingPointDbContext : uses
-RouteController --> GoogleMapsAPI : calls
-WalkController --> PingPointDbContext : uses
-PlaceController --> PingPointDbContext : uses
-RecommendationController --> PingPointDbContext : uses
-RecommendationController --> IRecommendationService : uses
-RecommendationService ..|> IRecommendationService : implements
-RecommendationService --> PingPointDbContext : uses
-PingPointDbContext --> Route : manages
-PingPointDbContext --> Location : manages
-PingPointDbContext --> User : manages
-PingPointDbContext --> Walk : manages
-PingPointDbContext --> Place : manages
-PingPointDbContext --> PlaceCategory : manages
-PingPointDbContext --> RouteRecommendation : manages
-PingPointDbContext --> PostgreSQL : connects
-Route --> Location : references (StartLocationId)
-Route --> Location : references (EndLocationId)
-Route --> User : belongs to
-Walk --> User : belongs to
-Walk --> Route : references
-Place --> User : created by
-Place --> PlaceCategory : categorized by
-RouteRecommendation --> User : for user
-RouteRecommendation --> Route : recommends
-Program --> RouteController : registers
-Program --> WalkController : registers
-Program --> PlaceController : registers
-Program --> RecommendationController : registers
-Program --> PingPointDbContext : configures
-Program --> RecommendationService : registers
+RouteController --> PingPointDbContext
+RouteController --> GoogleMapsAPI
+WalkController --> PingPointDbContext
+PlaceController --> PingPointDbContext
+RecommendationController --> PingPointDbContext
+RecommendationController --> IRecommendationService
+RecommendationService ..|> IRecommendationService
+RecommendationService --> PingPointDbContext
+PingPointDbContext --> Route
+PingPointDbContext --> Location
+PingPointDbContext --> User
+PingPointDbContext --> Walk
+PingPointDbContext --> Place
+PingPointDbContext --> PlaceCategory
+PingPointDbContext --> RouteRecommendation
+PingPointDbContext --> PostgreSQL
+Route --> Location
+Route --> User
+Walk --> User
+Walk --> Route
+Place --> User
+Place --> PlaceCategory
+RouteRecommendation --> User
+RouteRecommendation --> Route
+Program --> RouteController
+Program --> WalkController
+Program --> PlaceController
+Program --> RecommendationController
+Program --> PingPointDbContext
+Program --> RecommendationService
 
 ' Frontend Flutter Relationships
-MainApp --> LoginScreen : initializes
-MainApp --> HomePage : navigates to
-MainApp --> MyWalksScreen : navigates to
-MainApp --> PlacesScreen : navigates to
-MainApp --> RecommendationsScreen : navigates to
-MainApp --> ProfileScreen : navigates to
-MainApp --> SettingsScreen : navigates to
-HomePage --> MapWidget : contains
-HomePage --> WalkTrackerWidget : contains
-MyWalksScreen --> WalkService : uses
-PlacesScreen --> PlaceService : uses
-PlacesScreen --> PlaceCardWidget : displays
-RecommendationsScreen --> RecommendationService : uses
-RecommendationsScreen --> RouteCardWidget : displays
-ProfileScreen --> SettingsScreen : navigates to
-MapWidget --> LocationService : uses
-TrailDrawingWidget --> RouteService : uses
-WalkTrackerWidget --> WalkService : uses
-WalkTrackerWidget --> LocationService : uses
-ApiService --> RouteController : HTTP calls
-ApiService --> WalkController : HTTP calls
-ApiService --> PlaceController : HTTP calls
-ApiService --> RecommendationController : HTTP calls
-WalkService --> ApiService : uses
-PlaceService --> ApiService : uses
-RouteService --> ApiService : uses
-RecommendationService --> ApiService : uses
-WalkState --> WalkModel : manages
-PlaceState --> PlaceModel : manages
-AppState --> UserModel : manages
-MyWalksScreen --> WalkState : observes
-PlacesScreen --> PlaceState : observes
+MainApp --> LoginScreen
+MainApp --> HomePage
+MainApp --> MyWalksScreen
+MainApp --> PlacesScreen
+MainApp --> RecommendationsScreen
+MainApp --> ProfileScreen
+MainApp --> SettingsScreen
+HomePage --> MapWidget
+HomePage --> WalkTrackerWidget
+MyWalksScreen --> WalkService
+PlacesScreen --> PlaceService
+PlacesScreen --> PlaceCardWidget
+RecommendationsScreen --> RecommendationService
+RecommendationsScreen --> RouteCardWidget
+ProfileScreen --> SettingsScreen
+MapWidget --> LocationService
+TrailDrawingWidget --> RouteService
+WalkTrackerWidget --> WalkService
+WalkTrackerWidget --> LocationService
+ApiService --> RouteController
+ApiService --> WalkController
+ApiService --> PlaceController
+ApiService --> RecommendationController
+WalkService --> ApiService
+PlaceService --> ApiService
+RouteService --> ApiService
+RecommendationService --> ApiService
+WalkState --> WalkModel
+PlaceState --> PlaceModel
+AppState --> UserModel
+MyWalksScreen --> WalkState
+PlacesScreen --> PlaceState
 
 ' Notes
 note right of GoogleMapsAPI
